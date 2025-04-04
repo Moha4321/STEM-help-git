@@ -11,6 +11,9 @@
   "dependencies": {
     "@react-three/drei": "^9.97.0",
     "@react-three/fiber": "^8.15.16",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.4",
     "@tensorflow/tfjs": "^4.17.0",
     "@types/bcryptjs": "^2.4.6",
     "@vercel/postgres": "^0.10.0",
