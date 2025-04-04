@@ -115,7 +115,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
           },
-          emailRedirectTo: `${window.location.origin}/profile`,
         },
       });
 
@@ -127,8 +126,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.user.email!,
           name: data.user.user_metadata.name || '',
         });
-        // Redirect to profile page immediately after registration
-        window.location.href = '/profile';
+        // Redirect to login page after successful registration
+        window.location.href = '/login';
       }
     } catch (error) {
       console.error('Registration error:', error);

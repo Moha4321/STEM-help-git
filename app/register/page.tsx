@@ -37,6 +37,7 @@ export default function Register() {
 
     try {
       await register(formData.email, formData.password, formData.name);
+      // The redirect will happen in the AuthContext
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
       setLoading(false);
@@ -69,7 +70,8 @@ export default function Register() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
+                disabled={loading}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue disabled:opacity-50"
               />
             </div>
             <div>
@@ -84,7 +86,8 @@ export default function Register() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
+                disabled={loading}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue disabled:opacity-50"
               />
             </div>
             <div>
@@ -100,7 +103,8 @@ export default function Register() {
                 minLength={6}
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
+                disabled={loading}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue disabled:opacity-50"
               />
             </div>
             <div>
@@ -116,7 +120,8 @@ export default function Register() {
                 minLength={6}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
+                disabled={loading}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue disabled:opacity-50"
               />
             </div>
           </div>
