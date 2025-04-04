@@ -127,6 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.user.email!,
           name: data.user.user_metadata.name || '',
         });
+        // Redirect to profile page immediately after registration
+        window.location.href = '/profile';
       }
     } catch (error) {
       console.error('Registration error:', error);
