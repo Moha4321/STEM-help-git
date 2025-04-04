@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
 
 let supabase;
 
@@ -42,6 +43,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     // Check for existing session
@@ -86,20 +88,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Starting login process...');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        setUser({
-          id: data.user.id,
-          email: data.user.email!,
-          name: data.user.user_metadata.name || '',
-        });
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
       }
+
+      if (!data.user) {
+        throw new Error('No user data received from login');
+      }
+
+      console.log('Login successful:', {
+        id: data.user.id,
+        email: data.user.email,
+        metadata: data.user.user_metadata
+      });
+
+      // Check if the user profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error checking user profile:', profileError);
+      } else {
+        console.log('User profile found:', profile);
+      }
+
+      setUser({
+        id: data.user.id,
+        email: data.user.email!,
+        name: data.user.user_metadata.name || '',
+      });
+
+      router.push('/profile');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -118,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
           },
+          emailRedirectTo: `${window.location.origin}/login`,
         },
       });
 
@@ -130,7 +161,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('No user data received from registration');
       }
 
-      console.log('Auth user created successfully:', data.user);
+      console.log('Auth user created successfully:', {
+        id: data.user.id,
+        email: data.user.email,
+        metadata: data.user.user_metadata
+      });
+
+      // Check if the user was actually created in auth.users
+      const { data: authUser, error: authError } = await supabase
+        .from('auth.users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (authError) {
+        console.error('Error checking auth user:', authError);
+      } else {
+        console.log('Auth user found in database:', authUser);
+      }
+
+      // Check if the user profile was created
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error checking user profile:', profileError);
+      } else {
+        console.log('User profile found in database:', profile);
+      }
       
       // Set the user state
       setUser({
@@ -139,7 +200,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: data.user.user_metadata.name || '',
       });
 
-      // Redirect to login
+      // Show success message and redirect
+      alert('Registration successful! Please check your email to confirm your account.');
       window.location.href = '/login';
     } catch (error) {
       console.error('Registration error:', error);
