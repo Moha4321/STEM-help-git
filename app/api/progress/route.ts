@@ -3,15 +3,33 @@ import { createClient } from '@supabase/supabase-js';
 
 // GET user progress
 export async function GET() {
-  // For now, return mock progress data
-  return NextResponse.json({
-    progress: {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: 'Missing Supabase credentials' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // For now, return mock data
+    return NextResponse.json({
       level: 1,
       score: 0,
       achievements: [],
-      completedLessons: []
-    }
-  });
+      completedLessons: [],
+    });
+  } catch (error) {
+    console.error('Error in progress route:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
 
 // POST new progress
@@ -21,40 +39,22 @@ export async function POST(request: Request) {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase environment variables');
+      return NextResponse.json(
+        { error: 'Missing Supabase credentials' },
+        { status: 500 }
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
-    const { userId, subject, topic, level, score } = body;
 
-    if (!userId || !subject || !topic) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    const { data, error } = await supabase
-      .from('user_progress')
-      .upsert({
-        user_id: userId,
-        subject,
-        topic,
-        level,
-        score,
-        completed_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return NextResponse.json({ progress: data });
+    // Here you would typically update the progress in your database
+    // For now, just return the received data
+    return NextResponse.json(body);
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Error in progress update:', error);
     return NextResponse.json(
-      { error: 'Failed to update progress' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
