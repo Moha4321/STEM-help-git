@@ -12,6 +12,7 @@ interface Progress {
 interface ProgressContextType {
   progress: Progress | null;
   loading: boolean;
+  error: string | null;
   updateProgress: (newProgress: Partial<Progress>) => Promise<void>;
   addAchievement: (achievement: string) => Promise<void>;
   completeLesson: (lessonId: string) => Promise<void>;
@@ -22,17 +23,22 @@ const ProgressContext = createContext<ProgressContextType | undefined>(undefined
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProgress = async () => {
       try {
+        setError(null);
         const response = await fetch('/api/progress');
         if (response.ok) {
           const data = await response.json();
           setProgress(data.progress);
+        } else {
+          throw new Error('Failed to fetch progress');
         }
       } catch (error) {
         console.error('Progress fetch failed:', error);
+        setError(error instanceof Error ? error.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -43,6 +49,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateProgress = async (newProgress: Partial<Progress>) => {
     try {
+      setError(null);
       const response = await fetch('/api/progress', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -57,6 +64,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       console.error('Progress update error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
       throw error;
     }
   };
@@ -65,6 +73,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!progress) return;
 
     try {
+      setError(null);
       const response = await fetch('/api/progress/achievements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,6 +88,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       console.error('Achievement update error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
       throw error;
     }
   };
@@ -87,6 +97,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!progress) return;
 
     try {
+      setError(null);
       const response = await fetch('/api/progress/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,12 +112,13 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     } catch (error) {
       console.error('Lesson completion error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
       throw error;
     }
   };
 
   return (
-    <ProgressContext.Provider value={{ progress, loading, updateProgress, addAchievement, completeLesson }}>
+    <ProgressContext.Provider value={{ progress, loading, error, updateProgress, addAchievement, completeLesson }}>
       {children}
     </ProgressContext.Provider>
   );
