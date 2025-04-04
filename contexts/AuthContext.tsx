@@ -136,23 +136,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: data.user.user_metadata.name || '',
         });
 
-        // Create user profile in the database
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              name: name,
-            },
-          ]);
+        try {
+          // Create user profile in the database
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                name: name,
+              },
+            ]);
 
-        if (profileError) {
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
+            // Don't throw the error, just log it
+            // The user is still created in auth.users
+          } else {
+            console.log('User profile created successfully');
+          }
+        } catch (profileError) {
           console.error('Error creating user profile:', profileError);
-          throw profileError;
+          // Don't throw the error, just log it
+          // The user is still created in auth.users
         }
 
-        console.log('User profile created successfully');
         window.location.href = '/login';
       } else {
         console.error('No user data in response');
