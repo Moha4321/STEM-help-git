@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // GET user progress
 export async function GET() {
@@ -26,29 +31,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await sql`
-      INSERT INTO user_progress (
-        user_id,
+    const { data, error } = await supabase
+      .from('user_progress')
+      .upsert({
+        user_id: userId,
         subject,
         topic,
         level,
-        score
-      ) VALUES (
-        ${userId},
-        ${subject},
-        ${topic},
-        ${level},
-        ${score}
-      )
-      ON CONFLICT (user_id, subject, topic)
-      DO UPDATE SET
-        level = EXCLUDED.level,
-        score = EXCLUDED.score,
-        completed_at = CURRENT_TIMESTAMP
-      RETURNING *;
-    `;
+        score,
+        completed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-    return NextResponse.json({ progress: result.rows[0] });
+    if (error) throw error;
+
+    return NextResponse.json({ progress: data });
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
