@@ -110,22 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Starting registration process...');
       
-      // First, check if user already exists
-      const { data: existingUser, error: checkError } = await supabase
-        .from('user_profiles')
-        .select('email')
-        .eq('email', email)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.error('Error checking existing user:', checkError);
-        throw new Error('Error checking existing user');
-      }
-
-      if (existingUser) {
-        throw new Error('User with this email already exists');
-      }
-
       // Create the auth user
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -147,26 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Auth user created successfully:', data.user);
-
-      // Create the user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert([
-          {
-            id: data.user.id,
-            email: data.user.email,
-            name: name,
-          },
-        ]);
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // If profile creation fails, we should clean up the auth user
-        await supabase.auth.admin.deleteUser(data.user.id);
-        throw new Error('Failed to create user profile');
-      }
-
-      console.log('User profile created successfully');
       
       // Set the user state
       setUser({
