@@ -13,6 +13,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { register } = useAuth();
 
@@ -28,6 +29,7 @@ export default function Register() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setSuccess(false);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -37,13 +39,35 @@ export default function Register() {
 
     try {
       await register(formData.email, formData.password, formData.name);
-      router.push('/profile');
+      setSuccess(true);
+      // Don't redirect immediately, show success message
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-sm text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Check your email
+          </h2>
+          <p className="text-gray-600 mb-6">
+            We've sent a confirmation link to {formData.email}. Please check your inbox and click the link to verify your account.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-blue hover:bg-primary-blue-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-blue"
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">

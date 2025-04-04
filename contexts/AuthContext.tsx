@@ -15,6 +15,7 @@ try {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
     },
   });
 } catch (error) {
@@ -63,6 +64,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata.name || '',
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -96,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
           },
+          emailRedirectTo: `${window.location.origin}/profile`,
         },
       });
 
