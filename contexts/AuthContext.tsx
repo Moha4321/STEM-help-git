@@ -108,6 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, name: string) => {
     try {
+      console.log('Starting registration process...');
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -118,16 +121,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Registration error:', error);
+        throw error;
+      }
+
+      console.log('Registration response:', data);
 
       if (data.user) {
+        console.log('User created successfully:', data.user);
         setUser({
           id: data.user.id,
           email: data.user.email!,
           name: data.user.user_metadata.name || '',
         });
-        // Redirect to login page after successful registration
+
+        // Create user profile in the database
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              name: name,
+            },
+          ]);
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          throw profileError;
+        }
+
+        console.log('User profile created successfully');
         window.location.href = '/login';
+      } else {
+        console.error('No user data in response');
+        throw new Error('Registration failed: No user data received');
       }
     } catch (error) {
       console.error('Registration error:', error);
