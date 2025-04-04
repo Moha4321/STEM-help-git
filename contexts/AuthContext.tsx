@@ -109,8 +109,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, name: string) => {
     try {
       console.log('Starting registration process...');
-      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      
+      // First, check if user already exists
+      const { data: existingUser, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('email')
+        .eq('email', email)
+        .single();
 
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Error checking existing user:', checkError);
+        throw new Error('Error checking existing user');
+      }
+
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Create the auth user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -122,50 +138,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('Registration error:', error);
+        console.error('Auth registration error:', error);
         throw error;
       }
 
-      console.log('Registration response:', data);
-
-      if (data.user) {
-        console.log('User created successfully:', data.user);
-        setUser({
-          id: data.user.id,
-          email: data.user.email!,
-          name: data.user.user_metadata.name || '',
-        });
-
-        try {
-          // Create user profile in the database
-          const { error: profileError } = await supabase
-            .from('user_profiles')
-            .insert([
-              {
-                id: data.user.id,
-                email: data.user.email,
-                name: name,
-              },
-            ]);
-
-          if (profileError) {
-            console.error('Error creating user profile:', profileError);
-            // Don't throw the error, just log it
-            // The user is still created in auth.users
-          } else {
-            console.log('User profile created successfully');
-          }
-        } catch (profileError) {
-          console.error('Error creating user profile:', profileError);
-          // Don't throw the error, just log it
-          // The user is still created in auth.users
-        }
-
-        window.location.href = '/login';
-      } else {
-        console.error('No user data in response');
-        throw new Error('Registration failed: No user data received');
+      if (!data.user) {
+        throw new Error('No user data received from registration');
       }
+
+      console.log('Auth user created successfully:', data.user);
+
+      // Create the user profile
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            name: name,
+          },
+        ]);
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // If profile creation fails, we should clean up the auth user
+        await supabase.auth.admin.deleteUser(data.user.id);
+        throw new Error('Failed to create user profile');
+      }
+
+      console.log('User profile created successfully');
+      
+      // Set the user state
+      setUser({
+        id: data.user.id,
+        email: data.user.email!,
+        name: data.user.user_metadata.name || '',
+      });
+
+      // Redirect to login
+      window.location.href = '/login';
     } catch (error) {
       console.error('Registration error:', error);
       throw error;

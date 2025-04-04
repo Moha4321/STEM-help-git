@@ -35,11 +35,17 @@ export default function Register() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
     try {
       await register(formData.email, formData.password, formData.name);
-      // The redirect will happen in the AuthContext
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
       setLoading(false);
     }
   };
