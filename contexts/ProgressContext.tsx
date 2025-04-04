@@ -3,6 +3,8 @@ import { createClient } from '@vercel/postgres';
 
 interface Progress {
   userId: string;
+  subject: string;
+  topic: string;
   level: number;
   achievements: string[];
   completedLessons: string[];

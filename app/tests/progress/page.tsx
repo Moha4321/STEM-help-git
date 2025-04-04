@@ -15,7 +15,12 @@ function ProgressTest() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateProgress(subject, topic, level, score);
+      await updateProgress({
+        subject,
+        topic,
+        level,
+        score
+      });
       // Clear form
       setSubject('');
       setTopic('');
@@ -99,24 +104,30 @@ function ProgressTest() {
         <div className="bg-white shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Current Progress</h2>
           {loading ? (
-            <p className="text-gray-600">Loading progress...</p>
+            <p>Loading...</p>
           ) : error ? (
-            <p className="text-red-600">{error}</p>
-          ) : progress.length === 0 ? (
-            <p className="text-gray-600">No progress recorded yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {progress.map((p, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <p className="font-semibold">{p.subject} - {p.topic}</p>
-                  <p className="text-gray-600">Level: {p.level}</p>
-                  <p className="text-gray-600">Score: {p.score}</p>
-                  <p className="text-gray-500 text-sm">
-                    Completed: {new Date(p.completed_at).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+            <p className="text-red-500">{error}</p>
+          ) : progress ? (
+            <div>
+              <p>Subject: {progress.subject}</p>
+              <p>Topic: {progress.topic}</p>
+              <p>Level: {progress.level}</p>
+              <p>Score: {progress.score}</p>
+              <h3 className="mt-4 font-semibold">Achievements:</h3>
+              <ul>
+                {progress.achievements.map((achievement, index) => (
+                  <li key={index}>{achievement}</li>
+                ))}
+              </ul>
+              <h3 className="mt-4 font-semibold">Completed Lessons:</h3>
+              <ul>
+                {progress.completedLessons.map((lesson, index) => (
+                  <li key={index}>{lesson}</li>
+                ))}
+              </ul>
             </div>
+          ) : (
+            <p>No progress data available</p>
           )}
         </div>
       </div>
