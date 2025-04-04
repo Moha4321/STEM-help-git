@@ -18,7 +18,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/signin');
+      router.push('/login');
     } else if (user) {
       setFormData(prev => ({
         ...prev,

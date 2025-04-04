@@ -31,7 +31,7 @@ export default function Register() {
 
     try {
       // TODO: Implement registration logic
-      router.push('/signin');
+      router.push('/login');
     } catch (err) {
       setError('Registration failed. Please try again.');
     }

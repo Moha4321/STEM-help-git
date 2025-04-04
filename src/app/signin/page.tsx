@@ -1,84 +1,90 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { signIn } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+    setLoading(true);
 
     try {
-      await signIn(email, password);
-      router.push('/');
+      await login(email, password);
+      router.push('/profile');
     } catch (err) {
-      setError('Invalid email or password');
+      setError(err instanceof Error ? err.message : 'An error occurred during login');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-sm">
-          <div>
-            <h2 className="text-center text-3xl font-bold text-gray-900">
-              Sign in to your account
-            </h2>
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white/10 backdrop-blur-sm rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-white mb-6">Sign In</h2>
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/50 text-white rounded">
+            {error}
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full btn-primary"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-white mb-2">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 rounded bg-white/20 text-white border border-white/30 focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-white mb-2">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 rounded bg-white/20 text-white border border-white/30 focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+        <div className="mt-4 text-center">
+          <p className="text-white">
+            Don't have an account?{' '}
+            <a href="/register" className="text-blue-400 hover:underline">
+              Register
+            </a>
+          </p>
+          <p className="text-white mt-2">
+            Forgot your password?{' '}
+            <a href="/reset-password" className="text-blue-400 hover:underline">
+              Reset Password
+            </a>
+          </p>
         </div>
       </div>
     </Layout>
