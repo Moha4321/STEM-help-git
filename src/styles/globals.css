@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #2563eb;
+  --primary-blue-dark: #1d4ed8;
+  --secondary-green: #10b981;
+  --secondary-green-dark: #059669;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-600 text-white px-6 py-3 rounded-lg hover:bg-secondary-700 transition-colors;
+  }
+} 
