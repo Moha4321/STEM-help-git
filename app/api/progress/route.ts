@@ -1,39 +1,16 @@
-import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
 // GET user progress
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: 'User ID is required' },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const result = await sql`
-      SELECT 
-        subject,
-        topic,
-        level,
-        score,
-        completed_at
-      FROM user_progress
-      WHERE user_id = ${userId}
-      ORDER BY completed_at DESC;
-    `;
-
-    return NextResponse.json({ progress: result.rows });
-  } catch (error) {
-    console.error('Database error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch progress' },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  // For now, return mock progress data
+  return NextResponse.json({
+    progress: {
+      level: 1,
+      score: 0,
+      achievements: [],
+      completedLessons: []
+    }
+  });
 }
 
 // POST new progress
@@ -79,4 +56,13 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(request: Request) {
+  const data = await request.json();
+  return NextResponse.json({
+    progress: {
+      ...data
+    }
+  });
 } 
