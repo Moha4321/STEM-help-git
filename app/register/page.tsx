@@ -97,7 +97,9 @@ export default function Register() {
                 id="password"
                 name="password"
                 type="password"
+                autoComplete="new-password"
                 required
+                minLength={6}
                 value={formData.password}
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
@@ -111,7 +113,9 @@ export default function Register() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 required
+                minLength={6}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-blue focus:border-primary-blue"
